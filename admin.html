@@ -1,0 +1,445 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#09091b">
+<title>BusinessPilot AI | Super Admin</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#09091b;color:#f7f5ff;
+ font-family:Arial,sans-serif;
+ background-image:
+ radial-gradient(circle at 10% 5%,#54269b55,transparent 35%),
+ radial-gradient(circle at 95% 95%,#006b9950,transparent 35%);
+ min-height:100vh
+}
+header{
+ padding:20px 5%;display:flex;align-items:center;
+ justify-content:space-between;gap:15px;flex-wrap:wrap;
+ border-bottom:1px solid #ffffff18;
+ background:#09091bdc;position:sticky;top:0;z-index:5;
+ backdrop-filter:blur(15px)
+}
+.logo{font-size:20px;font-weight:900}
+.logo span{color:#b58aff}
+.admin-label{
+ font-size:11px;color:#d9c3ff;
+ border:1px solid #9b5cff66;background:#9b5cff22;
+ padding:8px 12px;border-radius:30px
+}
+button{
+ border:0;padding:12px 17px;border-radius:10px;
+ background:linear-gradient(100deg,#8746ed,#168bdc);
+ color:white;font-weight:bold;cursor:pointer
+}
+button:disabled{opacity:.5;cursor:wait}
+button.secondary{background:#ffffff12;border:1px solid #ffffff22}
+button.danger{background:#a52d55}
+main{max-width:1150px;margin:35px auto;padding:0 18px}
+h1{font-size:30px;margin-bottom:8px}
+.muted{color:#aaa9c5;font-size:13px;line-height:1.7}
+.grid{
+ display:grid;grid-template-columns:repeat(4,1fr);
+ gap:15px;margin:25px 0
+}
+.card{
+ background:#17172eea;border:1px solid #ffffff18;
+ padding:21px;border-radius:17px;
+ box-shadow:0 12px 35px #0003
+}
+.stat-label{font-size:12px;color:#aaa9c5}
+.stat-number{font-size:30px;font-weight:900;margin-top:12px}
+.purple{color:#c49aff}.cyan{color:#51ddff}
+.pink{color:#ff83d6}.green{color:#65e8b4}
+.section{margin-top:28px}
+.section h2{font-size:19px}
+.form-grid{
+ display:grid;grid-template-columns:repeat(2,1fr);gap:13px
+}
+label{font-size:12px;color:#c5c2df}
+input,select{
+ display:block;width:100%;margin-top:8px;padding:13px;
+ border:1px solid #ffffff25;border-radius:10px;
+ background:#0e0e22;color:white;outline:none
+}
+input:focus,select:focus{border-color:#a78bfa}
+.full{grid-column:1/-1}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.table-wrap{overflow-x:auto;margin-top:15px}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th,td{
+ padding:13px 11px;text-align:left;
+ border-bottom:1px solid #ffffff15;font-size:12px
+}
+th{color:#bda2ff}
+td{color:#e3e0f5}
+.status{font-size:12px;color:#62e6b2;margin-top:12px}
+.error{color:#ff8fa8}
+.empty{color:#aaa9c5;padding:20px;text-align:center}
+.code{
+ font-family:monospace;color:#66e5ff;
+ overflow-wrap:anywhere
+}
+.profile{overflow-wrap:anywhere}
+.hidden{display:none}
+footer{text-align:center;color:#77758f;padding:35px;font-size:11px}
+@media(max-width:700px){
+ .grid{grid-template-columns:repeat(2,1fr)}
+ .form-grid{grid-template-columns:1fr}
+ .full{grid-column:auto}
+ h1{font-size:25px}
+}
+</style>
+</head>
+
+<body>
+<header>
+ <div class="logo">BUSINESSPILOT <span>AI</span></div>
+ <div class="admin-label">✦ SUPER ADMIN</div>
+ <button class="secondary" id="logout">Sign out</button>
+</header>
+
+<main>
+ <h1>Super Admin Dashboard</h1>
+ <p class="muted">Manage your platform, business accounts and Premium coupons.</p>
+
+ <section class="grid">
+  <div class="card">
+   <div class="stat-label">Total accounts</div>
+   <div class="stat-number purple" id="total">—</div>
+  </div>
+  <div class="card">
+   <div class="stat-label">Free accounts</div>
+   <div class="stat-number cyan" id="free">—</div>
+  </div>
+  <div class="card">
+   <div class="stat-label">Premium accounts</div>
+   <div class="stat-number pink" id="premium">—</div>
+  </div>
+  <div class="card">
+   <div class="stat-label">Trial accounts</div>
+   <div class="stat-number green" id="trial">—</div>
+  </div>
+ </section>
+
+ <section class="card section">
+  <h2>👑 Administrator profile</h2>
+  <p class="muted profile" id="adminEmail">Verifying administrator...</p>
+  <p class="muted profile" id="adminUid"></p>
+ </section>
+
+ <section class="card section">
+  <h2>🎟️ Create Premium coupon</h2>
+  <p class="muted">
+   Create a unique code for a business owner. Coupon creation is restricted
+   to your Super Admin account.
+  </p>
+
+  <div class="form-grid">
+   <label>
+    Coupon code
+    <input id="couponCode" maxlength="30"
+      placeholder="Example: AKHILPREMIUM">
+   </label>
+
+   <label>
+    Premium duration
+    <select id="duration">
+     <option value="30">30 days</option>
+     <option value="90">90 days</option>
+     <option value="180">180 days</option>
+     <option value="365">365 days</option>
+     <option value="0">Lifetime</option>
+    </select>
+   </label>
+
+   <label>
+    Maximum redemptions
+    <input id="maxUses" type="number" min="1" max="1000" value="1">
+   </label>
+
+   <label>
+    Plan
+    <select id="couponPlan">
+     <option value="premium">Premium</option>
+    </select>
+   </label>
+  </div>
+
+  <div class="actions">
+   <button id="generate">Generate random code</button>
+   <button id="create">Create coupon</button>
+  </div>
+  <p id="couponMessage" class="muted"></p>
+ </section>
+
+ <section class="card section">
+  <h2>🎫 Coupon management</h2>
+  <p class="muted">Your created coupons and their redemption limits.</p>
+  <div class="table-wrap">
+   <table>
+    <thead>
+     <tr>
+      <th>Code</th><th>Plan</th><th>Duration</th>
+      <th>Uses</th><th>Status</th><th>Action</th>
+     </tr>
+    </thead>
+    <tbody id="couponRows">
+     <tr><td colspan="6">Loading coupons...</td></tr>
+    </tbody>
+   </table>
+  </div>
+ </section>
+
+ <section class="card section">
+  <h2>👥 Business accounts</h2>
+  <p class="muted">Registered user profiles in Firestore.</p>
+  <div class="table-wrap">
+   <table>
+    <thead>
+     <tr>
+      <th>Email</th><th>Role</th><th>Plan</th><th>Status</th>
+     </tr>
+    </thead>
+    <tbody id="userRows">
+     <tr><td colspan="4">Loading accounts...</td></tr>
+    </tbody>
+   </table>
+  </div>
+ </section>
+
+ <p id="message" class="status"></p>
+</main>
+
+<footer>© 2026 BusinessPilot AI · Super Admin</footer>
+
+<script type="module">
+import {initializeApp}
+ from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+import {
+ getAuth,onAuthStateChanged,signOut
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+import {
+ getFirestore,doc,getDoc,collection,getDocs,
+ addDoc,updateDoc,serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyAD0vpk03II36ZNsn70q9E-RKhcxoePYKI",
+ authDomain:"businesspilot-ai-3932a.firebaseapp.com",
+ projectId:"businesspilot-ai-3932a",
+ storageBucket:"businesspilot-ai-3932a.firebasestorage.app",
+ messagingSenderId:"940895712421",
+ appId:"1:940895712421:web:1084c9d8d2c2c65e27894c",
+ measurementId:"G-FC8MMFC3GY"
+};
+
+const ADMIN_UID="o7qVZ9QsbIS4zMYH7rCk53Ul24K2";
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const $=id=>document.getElementById(id);
+
+let currentUser=null;
+let ready=false;
+
+function message(text,error=false){
+ $("message").textContent=text;
+ $("message").className=error?"status error":"status";
+}
+
+function randomCode(){
+ const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+ const bytes=new Uint8Array(12);
+ crypto.getRandomValues(bytes);
+ return "BP-"+Array.from(bytes,b=>chars[b%chars.length]).join("");
+}
+
+$("generate").addEventListener("click",()=>{
+ $("couponCode").value=randomCode();
+});
+
+$("logout").addEventListener("click",async()=>{
+ await signOut(auth);
+ window.location.replace("index.html");
+});
+
+function cell(row,value,className=""){
+ const td=document.createElement("td");
+ td.textContent=value ?? "—";
+ if(className)td.className=className;
+ row.appendChild(td);
+ return td;
+}
+
+async function loadUsers(){
+ const snapshot=await getDocs(collection(db,"users"));
+ const rows=$("userRows");
+ rows.replaceChildren();
+
+ let free=0,premium=0,trial=0;
+
+ snapshot.forEach(item=>{
+  const u=item.data();
+  if(u.role==="super_admin")return;
+
+  if(u.plan==="premium")premium++;
+  else if(u.plan==="trial")trial++;
+  else free++;
+
+  const tr=document.createElement("tr");
+  cell(tr,u.email);
+  cell(tr,u.role);
+  cell(tr,u.plan);
+  cell(tr,u.status);
+  rows.appendChild(tr);
+ });
+
+ $("total").textContent=snapshot.size;
+ $("free").textContent=free;
+ $("premium").textContent=premium;
+ $("trial").textContent=trial;
+
+ if(!rows.children.length){
+  const tr=document.createElement("tr");
+  cell(tr,"No business accounts yet.");
+  tr.firstChild.colSpan=4;
+  rows.appendChild(tr);
+ }
+}
+
+async function loadCoupons(){
+ const snapshot=await getDocs(collection(db,"coupons"));
+ const rows=$("couponRows");
+ rows.replaceChildren();
+
+ snapshot.forEach(item=>{
+  const c=item.data();
+  const tr=document.createElement("tr");
+
+  cell(tr,c.code,"code");
+  cell(tr,c.plan);
+  cell(tr,c.durationDays===0?"Lifetime":c.durationDays+" days");
+  cell(tr,(c.redemptionCount||0)+" / "+c.maxRedemptions);
+  cell(tr,c.active?"Active":"Disabled");
+
+  const td=document.createElement("td");
+  const button=document.createElement("button");
+  button.className="secondary";
+  button.textContent=c.active?"Disable":"Enable";
+  button.addEventListener("click",async()=>{
+   button.disabled=true;
+   try{
+    await updateDoc(doc(db,"coupons",item.id),{
+     active:!c.active,
+     updatedAt:serverTimestamp()
+    });
+    await loadCoupons();
+    message("Coupon status updated.");
+   }catch(e){
+    message(e.message,true);
+    button.disabled=false;
+   }
+  });
+  td.appendChild(button);
+  tr.appendChild(td);
+  rows.appendChild(tr);
+ });
+
+ if(!rows.children.length){
+  const tr=document.createElement("tr");
+  cell(tr,"No coupons created yet.");
+  tr.firstChild.colSpan=6;
+  rows.appendChild(tr);
+ }
+}
+
+$("create").addEventListener("click",async()=>{
+ if(!ready||!currentUser)return;
+
+ const code=$("couponCode").value.trim().toUpperCase();
+ const durationDays=Number($("duration").value);
+ const maxRedemptions=Number($("maxUses").value);
+
+ if(!/^[A-Z0-9-]{4,30}$/.test(code)){
+  $("couponMessage").textContent="Enter a valid coupon code (4–30 letters, numbers or hyphens).";
+  return;
+ }
+
+ if(!Number.isInteger(maxRedemptions)||maxRedemptions<1||maxRedemptions>1000){
+  $("couponMessage").textContent="Maximum redemptions must be between 1 and 1000.";
+  return;
+ }
+
+ $("create").disabled=true;
+ $("couponMessage").textContent="Creating coupon...";
+
+ try{
+  const ref=doc(db,"coupons",code);
+  const existing=await getDoc(ref);
+
+  if(existing.exists()){
+   throw new Error("This coupon code already exists. Choose another.");
+  }
+
+  await addDoc(collection(db,"coupons"),{
+   code,
+   plan:"premium",
+   durationDays,
+   maxRedemptions,
+   redemptionCount:0,
+   active:true,
+   createdBy:currentUser.uid,
+   createdAt:serverTimestamp()
+  });
+
+  $("couponMessage").textContent="Coupon created successfully: "+code;
+  $("couponCode").value="";
+  await loadCoupons();
+ }catch(e){
+  $("couponMessage").textContent=e.message;
+ }finally{
+  $("create").disabled=false;
+ }
+});
+
+onAuthStateChanged(auth,async user=>{
+ if(!user){
+  window.location.replace("index.html");
+  return;
+ }
+
+ if(user.uid!==ADMIN_UID){
+  await signOut(auth);
+  window.location.replace("index.html");
+  return;
+ }
+
+ currentUser=user;
+
+ try{
+  const profile=await getDoc(doc(db,"users",user.uid));
+
+  if(!profile.exists()||profile.data().role!=="super_admin"){
+   throw new Error("Super Admin profile verification failed.");
+  }
+
+  $("adminEmail").textContent="Signed in as: "+user.email;
+  $("adminUid").textContent="Admin UID: "+user.uid;
+
+  await Promise.all([loadUsers(),loadCoupons()]);
+  ready=true;
+  message("Super Admin authenticated. Dashboard data loaded.");
+ }catch(e){
+  message("Dashboard error: "+e.message,true);
+ }
+});
+</script>
+</body>
+</html>
