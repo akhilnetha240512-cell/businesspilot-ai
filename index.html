@@ -340,7 +340,7 @@
     import {
       getAuth,
       GoogleAuthProvider,
-      signInWithRedirect,
+      signInWithPopup,
       getRedirectResult,
       onAuthStateChanged,
       signOut
@@ -389,17 +389,21 @@
     }
 
     loginButton.addEventListener("click", async () => {
-      loginButton.disabled = true;
-      buttonText.textContent = "Connecting to Google...";
+  loginButton.disabled = true;
+  buttonText.textContent = "Connecting to Google...";
 
-      try {
-        await signInWithRedirect(auth, provider);
-      } catch (error) {
-        showStatus(friendlyError(error));
-        loginButton.disabled = false;
-        buttonText.textContent = "Continue with Google";
-      }
-    });
+  try {
+    const result = await signInWithPopup(auth, provider);
+
+    if (result.user) {
+      window.location.href = "dashboard.html";
+    }
+  } catch (error) {
+    showStatus(friendlyError(error));
+    loginButton.disabled = false;
+    buttonText.textContent = "Continue with Google";
+  }
+});
 
     document.getElementById("signOut").addEventListener("click", async () => {
       try {
@@ -410,9 +414,6 @@
       }
     });
 
-    getRedirectResult(auth).catch(error => {
-      showStatus(friendlyError(error));
-    });
 
     onAuthStateChanged(auth, user => {
       if (user) {
