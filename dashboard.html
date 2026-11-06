@@ -5,83 +5,103 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#09091b">
-  <title>BusinessPilot AI | Welcome</title>
+  <title>BusinessPilot AI | Dashboard</title>
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      padding: 22px;
-      display: grid;
-      place-items: center;
+      padding: 24px;
       font-family: Arial, sans-serif;
       color: white;
       background:
-        radial-gradient(circle at 15% 15%, #51259b, transparent 40%),
+        radial-gradient(circle at 10% 10%, #52269b, transparent 40%),
         radial-gradient(circle at 90% 90%, #075b83, transparent 40%),
         #09091b;
     }
-    .card {
-      width: 100%;
-      max-width: 480px;
-      padding: 35px 25px;
-      text-align: center;
-      border: 1px solid #ffffff25;
-      border-radius: 24px;
-      background: #17172eea;
-      box-shadow: 0 20px 70px #0008;
+    .container { max-width: 850px; margin: 30px auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
     }
-    .logo { font-size: 24px; font-weight: 900; }
+    .logo { font-weight: 900; font-size: 21px; }
     .logo span { color: #b58aff; }
+    .card {
+      margin-top: 35px;
+      padding: 30px;
+      border: 1px solid #ffffff25;
+      border-radius: 22px;
+      background: #17172eea;
+      box-shadow: 0 20px 70px #0007;
+    }
     .avatar {
       width: 75px;
       height: 75px;
-      margin: 30px auto 15px;
       border-radius: 50%;
       object-fit: cover;
       background: linear-gradient(135deg,#9b5cff,#20d9ff);
     }
-    h1 { font-size: 27px; }
-    p { color: #b8b6d2; line-height: 1.7; overflow-wrap: anywhere; }
+    h1 { font-size: 28px; }
+    .muted { color: #b8b6d2; line-height: 1.7; }
+    .tag {
+      display: inline-block;
+      padding: 9px 14px;
+      margin: 8px 5px 8px 0;
+      border-radius: 30px;
+      background: #713be855;
+      border: 1px solid #a78bfa55;
+      color: #d9c5ff;
+      font-size: 12px;
+    }
     .details {
       margin-top: 25px;
-      padding: 15px;
-      text-align: left;
-      background: #ffffff0b;
-      border: 1px solid #ffffff18;
-      border-radius: 14px;
-      font-size: 13px;
+      padding: 18px;
+      border-radius: 15px;
+      background: #ffffff09;
+      overflow-wrap: anywhere;
     }
-    .details strong { color: #c6a4ff; }
     button {
-      width: 100%;
-      padding: 15px;
-      margin-top: 25px;
+      padding: 13px 19px;
       border: 0;
-      border-radius: 12px;
+      border-radius: 11px;
+      background: linear-gradient(100deg,#8746ed,#168bdc);
       color: white;
       font-weight: bold;
-      background: linear-gradient(100deg,#8746ed,#168bdc);
       cursor: pointer;
     }
+    .error { color: #ff9aaf; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <main class="card">
-    <div class="logo">BUSINESSPILOT <span>AI</span></div>
+  <main class="container">
+    <header>
+      <div class="logo">BUSINESSPILOT <span>AI</span></div>
+      <button id="logout" class="hidden">Sign out</button>
+    </header>
 
-    <img class="avatar" id="avatar" alt="Profile picture">
+    <section class="card">
+      <img class="avatar" id="avatar" alt="Profile">
+      <h1 id="welcome">Verifying your account...</h1>
+      <p class="muted" id="message">
+        Please wait while we prepare your workspace.
+      </p>
 
-    <h1 id="welcome">Checking your account...</h1>
-    <p>Your Google authentication is being verified.</p>
+      <div id="badges"></div>
 
-    <div class="details">
-      <p><strong>Name</strong><br><span id="name">Loading...</span></p>
-      <p><strong>Email</strong><br><span id="email">Loading...</span></p>
-      <p><strong>Firebase User UID</strong><br><span id="uid">Loading...</span></p>
-    </div>
+      <div class="details">
+        <p><strong>Name</strong><br><span id="name">Loading...</span></p>
+        <p><strong>Email</strong><br><span id="email">Loading...</span></p>
+        <p><strong>Account type</strong><br><span id="role">Loading...</span></p>
+        <p><strong>Plan</strong><br><span id="plan">Loading...</span></p>
+        <p><strong>Firebase UID</strong><br><span id="uid">Loading...</span></p>
+      </div>
 
-    <button id="logout" hidden>Sign out</button>
+      <p id="error" class="error"></p>
+    </section>
   </main>
 
   <script type="module">
@@ -93,6 +113,15 @@
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAD0vpk03II36ZNsn70q9E-RKhcxoePYKI",
@@ -106,34 +135,97 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    onAuthStateChanged(auth, user => {
+    const ADMIN_UID = "o7qVZ9QsbIS4zMYH7rCk53Ul24K2";
+
+    const $ = id => document.getElementById(id);
+
+    $("logout").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.replace("index.html");
+    });
+
+    onAuthStateChanged(auth, async user => {
       if (!user) {
         window.location.replace("index.html");
         return;
       }
 
-      document.getElementById("welcome").textContent =
-        "Welcome, " + (user.displayName || "Business Owner") + "!";
+      $("logout").classList.remove("hidden");
 
-      document.getElementById("name").textContent =
-        user.displayName || "Not provided";
+      try {
+        const userRef = doc(db, "users", user.uid);
+        let snapshot = await getDoc(userRef);
 
-      document.getElementById("email").textContent =
-        user.email || "Not provided";
+        if (!snapshot.exists()) {
+          if (user.uid === ADMIN_UID) {
+            throw new Error(
+              "Your Super Admin profile is missing. Check your Firestore document ID."
+            );
+          }
 
-      document.getElementById("uid").textContent = user.uid;
+          await setDoc(userRef, {
+            email: user.email,
+            role: "business_owner",
+            plan: "free",
+            status: "active",
+            createdAt: serverTimestamp()
+          });
 
-      if (user.photoURL) {
-        document.getElementById("avatar").src = user.photoURL;
+          snapshot = await getDoc(userRef);
+
+          if (snapshot.exists()) {
+            await updateDoc(userRef, {
+              displayName: user.displayName || "",
+              photoURL: user.photoURL || "",
+              updatedAt: serverTimestamp()
+            });
+
+            snapshot = await getDoc(userRef);
+          }
+        }
+
+        if (!snapshot.exists()) {
+          throw new Error("Unable to create your user profile.");
+        }
+
+        const profile = snapshot.data();
+
+        $("welcome").textContent =
+          "Welcome, " + (user.displayName || "Business Owner") + "!";
+
+        $("message").textContent =
+          "Your BusinessPilot AI account is ready.";
+
+        $("name").textContent =
+          profile.displayName || user.displayName || "Not provided";
+
+        $("email").textContent = user.email || "";
+        $("role").textContent = profile.role || "Not assigned";
+        $("plan").textContent = profile.plan || "Not assigned";
+        $("uid").textContent = user.uid;
+
+        if (user.photoURL) {
+          $("avatar").src = user.photoURL;
+        }
+
+        if (profile.role === "super_admin") {
+          $("badges").innerHTML =
+            '<span class="tag">✦ SUPER ADMIN</span>' +
+            '<span class="tag">PREMIUM</span>';
+        } else {
+          $("badges").innerHTML =
+            '<span class="tag">BUSINESS OWNER</span>' +
+            '<span class="tag">FREE PLAN</span>';
+        }
+
+      } catch (error) {
+        $("welcome").textContent = "Account setup incomplete";
+        $("message").textContent =
+          "We could not finish preparing your workspace.";
+        $("error").textContent = error.message;
       }
-
-      document.getElementById("logout").hidden = false;
-    });
-
-    document.getElementById("logout").addEventListener("click", async () => {
-      await signOut(auth);
-      window.location.replace("index.html");
     });
   </script>
 </body>
