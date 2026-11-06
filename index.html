@@ -4,137 +4,443 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080b16">
-  <title>BusinessPilot AI | Smart Business Automation</title>
+  <meta name="theme-color" content="#09091b">
+  <title>BusinessPilot AI | Business Intelligence</title>
+  <meta name="description" content="Your business. Your intelligence. Manage your business with BusinessPilot AI.">
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    :root {
+      --bg: #09091b;
+      --panel: rgba(22, 22, 48, .86);
+      --purple: #9b5cff;
+      --cyan: #32dcff;
+      --pink: #ff4fc8;
+      --text: #f7f5ff;
+      --muted: #aaa9c5;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #080b16;
-      color: #f5f7ff;
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 15% 15%, #40208055, transparent 38%),
+        radial-gradient(ellipse at 85% 80%, #006d9950, transparent 38%),
+        var(--bg);
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      overflow-x: hidden;
+    }
+
+    .orb {
+      position: fixed;
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .22;
+      pointer-events: none;
+    }
+
+    .orb.one { background: #9b5cff; top: -100px; left: -90px; }
+    .orb.two { background: #00d9ff; bottom: -120px; right: -70px; }
+
+    .container {
+      width: 100%;
+      max-width: 1050px;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 35px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand { padding: 20px; }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 55px;
+    }
+
+    .logo-icon {
+      width: 49px;
+      height: 49px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+      background: linear-gradient(135deg, #a855f7, #2563eb, #06b6d4);
+      box-shadow: 0 0 35px #8b5cf655;
+    }
+
+    .logo-name {
+      font-weight: 900;
+      font-size: 19px;
+      letter-spacing: 1px;
+    }
+
+    .logo-name span { color: #b58aff; }
+
+    .eyebrow {
+      color: #55dcff;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(38px, 5vw, 65px);
+      line-height: 1.08;
+      letter-spacing: -3px;
+      margin: 17px 0;
+    }
+
+    h1 span {
+      background: linear-gradient(90deg, #c69aff, #50dfff, #ff70d3);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .description {
+      max-width: 420px;
+      line-height: 1.8;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .feature {
+      border: 1px solid #ffffff18;
+      background: #ffffff08;
+      padding: 10px 13px;
+      border-radius: 12px;
+      color: #d9d7f2;
+      font-size: 12px;
+    }
+
+    .login-card {
+      background: var(--panel);
+      border: 1px solid #ffffff20;
+      border-radius: 25px;
+      padding: 34px;
+      box-shadow: 0 25px 90px #0008, 0 0 45px #824cff12;
+      backdrop-filter: blur(20px);
+    }
+
+    .card-icon {
+      width: 55px;
+      height: 55px;
+      border-radius: 17px;
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+      background: linear-gradient(135deg, #8b5cf6, #0ea5e9);
+      margin-bottom: 25px;
+    }
+
+    h2 { font-size: 27px; margin: 0 0 10px; }
+
+    .sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      margin-bottom: 27px;
+    }
+
+    .google-btn {
+      width: 100%;
+      padding: 16px;
+      border: 0;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: linear-gradient(100deg, #fff, #e8eaff);
+      color: #17142a;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .google-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px #8b5cf644;
+    }
+
+    .google-btn:disabled { opacity: .6; cursor: wait; }
+
+    .google-icon { width: 20px; height: 20px; }
+
+    .secure {
+      text-align: center;
+      margin-top: 20px;
+      color: #a6a4c1;
+      font-size: 11px;
+    }
+
+    .secure span { color: #51e7b0; }
+
+    .status {
+      display: none;
+      margin-top: 17px;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 12px;
       line-height: 1.6;
+      background: #ffffff0c;
+      color: #e6e3ff;
+      overflow-wrap: anywhere;
     }
-    header {
-      display: flex; justify-content: space-between;
-      align-items: center; padding: 20px 7%;
-      border-bottom: 1px solid #202941;
+
+    .status.show { display: block; }
+
+    .account {
+      display: none;
+      margin-top: 22px;
+      border: 1px solid #ffffff18;
+      border-radius: 15px;
+      padding: 17px;
+      background: #ffffff08;
     }
-    .logo { font-size: 23px; font-weight: bold; color: #8b9cff; }
-    nav a { color: #cbd2e8; text-decoration: none; margin-left: 20px; }
-    .hero { text-align: center; padding: 90px 20px 70px; }
-    .tag {
-      display: inline-block; color: #aab6ff;
-      border: 1px solid #39477c; border-radius: 30px;
-      padding: 6px 16px; margin-bottom: 24px;
+
+    .account.show { display: block; }
+
+    .account p {
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
     }
-    h1 { font-size: clamp(38px, 7vw, 68px); line-height: 1.12; }
-    h1 span { color: #899bff; }
-    .hero p {
-      color: #aab3ca; max-width: 650px;
-      margin: 22px auto; font-size: 17px;
+
+    .signout {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #ffffff25;
+      border-radius: 10px;
+      color: white;
+      background: #ffffff10;
+      cursor: pointer;
     }
-    .btn {
-      display: inline-block; background: #657cff;
-      color: white; padding: 13px 25px;
-      border-radius: 9px; text-decoration: none;
-      font-weight: bold; margin: 8px;
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #77758f;
+      font-size: 11px;
     }
-    .secondary { background: #171f35; border: 1px solid #34405f; }
-    section { padding: 55px 7%; }
-    .section-title { text-align: center; font-size: 32px; margin-bottom: 12px; }
-    .section-desc { text-align: center; color: #aab3ca; margin-bottom: 35px; }
-    .grid {
-      display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-      gap: 18px;
+
+    @media(max-width: 760px) {
+      .container { grid-template-columns: 1fr; gap: 15px; max-width: 470px; }
+      .brand { padding: 8px 5px; }
+      .logo { margin-bottom: 30px; }
+      h1 { font-size: 43px; }
+      .description { font-size: 13px; }
+      .features { margin-top: 20px; }
+      .login-card { padding: 25px; }
     }
-    .card {
-      background: #11182a; border: 1px solid #26314c;
-      border-radius: 15px; padding: 25px;
-    }
-    .card h3 { color: #a6b3ff; margin-bottom: 10px; }
-    .card p { color: #aab3ca; font-size: 14px; }
-    .cta { text-align: center; background: #10172a; }
-    footer {
-      text-align: center; padding: 25px;
-      color: #8791aa; border-top: 1px solid #202941;
-    }
-    @media(max-width:600px) {
-      header { flex-direction: column; gap: 12px; }
-      nav a { margin: 0 7px; font-size: 13px; }
-      .hero { padding-top: 65px; }
+
+    @media(prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
+
 <body>
-  <header>
-    <div class="logo">✦ BusinessPilot AI</div>
-    <nav>
-      <a href="#features">Features</a>
-      <a href="#about">About</a>
-      <a href="#contact">Contact</a>
-    </nav>
-  </header>
+  <div class="orb one"></div>
+  <div class="orb two"></div>
 
-  <main>
-    <div class="hero">
-      <div class="tag">✦ Your AI Business Assistant</div>
-      <h1>Run Your Business.<br><span>Automate the Future.</span></h1>
-      <p>
-        Manage customers, automate conversations and organize
-        your business operations with one intelligent platform.
+  <main class="container">
+    <section class="brand">
+      <div class="logo">
+        <div class="logo-icon">✦</div>
+        <div class="logo-name">BUSINESSPILOT <span>AI</span></div>
+      </div>
+
+      <div class="eyebrow">The future of business</div>
+      <h1>Run smarter.<br><span>Grow faster.</span></h1>
+
+      <p class="description">
+        One intelligent workspace for your business.
+        Manage customers, automate workflows, explore AI tools
+        and understand your business performance.
       </p>
-      <a class="btn" href="#features">Explore Features</a>
-      <a class="btn secondary" href="#contact">Get Started</a>
-    </div>
 
-    <section id="features">
-      <h2 class="section-title">Everything in One Place</h2>
-      <p class="section-desc">A smarter workspace for growing businesses.</p>
-      <div class="grid">
-        <div class="card">
-          <h3>🤖 AI Studio</h3>
-          <p>Build a business-specific AI assistant using your approved business information.</p>
-        </div>
-        <div class="card">
-          <h3>💬 WhatsApp Inbox</h3>
-          <p>Organize customer conversations and manage replies.</p>
-        </div>
-        <div class="card">
-          <h3>📸 Instagram Inbox</h3>
-          <p>Manage eligible professional Instagram business conversations.</p>
-        </div>
-        <div class="card">
-          <h3>⚡ Automation Builder</h3>
-          <p>Plan workflows for repetitive business tasks.</p>
-        </div>
-        <div class="card">
-          <h3>👥 Customer Manager</h3>
-          <p>Keep customer details and business records organized.</p>
-        </div>
-        <div class="card">
-          <h3>📊 Analytics</h3>
-          <p>Understand business activity through useful reports.</p>
-        </div>
+      <div class="features">
+        <div class="feature">✦ AI Workspace</div>
+        <div class="feature">⚡ Automation</div>
+        <div class="feature">◈ Analytics</div>
+        <div class="feature">♧ Business Management</div>
       </div>
     </section>
 
-    <section id="about">
-      <h2 class="section-title">Built for Business Growth</h2>
-      <p class="section-desc">
-        One platform for customer management, AI assistance
-        and business automation.
+    <section class="login-card">
+      <div class="card-icon">✧</div>
+      <h2 id="heading">Welcome to your workspace</h2>
+      <p class="sub" id="subtitle">
+        Sign in securely with your Google account to continue.
       </p>
-    </section>
 
-    <section class="cta" id="contact">
-      <h2 class="section-title">Your Business. One Pilot.</h2>
-      <p class="section-desc">BusinessPilot AI is under development.</p>
-      <a class="btn" href="mailto:akhilnetha240512@gmail.com">Contact Us</a>
+      <button class="google-btn" id="googleLogin">
+        <svg class="google-icon" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.99 46.98 31.91 46.98 24.55z"/>
+          <path fill="#FBBC05" d="M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.98-6.19a23.95 23.95 0 0 0 0 21.56l7.98-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.44-4.89 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span id="buttonText">Continue with Google</span>
+      </button>
+
+      <div class="status" id="status"></div>
+
+      <div class="account" id="account">
+        <strong>Google account connected</strong>
+        <p id="userEmail"></p>
+        <p id="userUid"></p>
+        <button class="signout" id="signOut">Sign out</button>
+      </div>
+
+      <div class="secure">
+        <span>●</span> Google-secured authentication
+        <br><br>
+        Your account is protected by Firebase Authentication.
+      </div>
+
+      <div class="footer">
+        © 2026 BusinessPilot AI. All rights reserved.
+      </div>
     </section>
   </main>
 
-  <footer>
-    © 2026 BusinessPilot AI. All rights reserved.
-  </footer>
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithRedirect,
+      getRedirectResult,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAD0vpk03II36ZNsn70q9E-RKhcxoePYKI",
+      authDomain: "businesspilot-ai-3932a.firebaseapp.com",
+      projectId: "businesspilot-ai-3932a",
+      storageBucket: "businesspilot-ai-3932a.firebasestorage.app",
+      messagingSenderId: "940895712421",
+      appId: "1:940895712421:web:1084c9d8d2c2c65e27894c",
+      measurementId: "G-FC8MMFC3GY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    provider.setCustomParameters({
+      prompt: "select_account"
+    });
+
+    const loginButton = document.getElementById("googleLogin");
+    const buttonText = document.getElementById("buttonText");
+    const statusBox = document.getElementById("status");
+    const accountBox = document.getElementById("account");
+
+    function showStatus(message) {
+      statusBox.textContent = message;
+      statusBox.classList.add("show");
+    }
+
+    function friendlyError(error) {
+      const messages = {
+        "auth/unauthorized-domain":
+          "This website domain is not authorized. Add your Vercel domain in Firebase Authentication settings.",
+        "auth/operation-not-allowed":
+          "Google login is not enabled in Firebase Authentication.",
+        "auth/network-request-failed":
+          "Network problem. Check your internet connection and try again."
+      };
+
+      return messages[error.code] ||
+        "Login failed: " + error.message;
+    }
+
+    loginButton.addEventListener("click", async () => {
+      loginButton.disabled = true;
+      buttonText.textContent = "Connecting to Google...";
+
+      try {
+        await signInWithRedirect(auth, provider);
+      } catch (error) {
+        showStatus(friendlyError(error));
+        loginButton.disabled = false;
+        buttonText.textContent = "Continue with Google";
+      }
+    });
+
+    document.getElementById("signOut").addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        showStatus("You have signed out successfully.");
+      } catch (error) {
+        showStatus(friendlyError(error));
+      }
+    });
+
+    getRedirectResult(auth).catch(error => {
+      showStatus(friendlyError(error));
+    });
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById("heading").textContent = "You're signed in!";
+        document.getElementById("subtitle").textContent =
+          "Your Google account has been authenticated successfully.";
+
+        document.getElementById("userEmail").textContent =
+          "Email: " + user.email;
+
+        document.getElementById("userUid").textContent =
+          "User UID: " + user.uid;
+
+        accountBox.classList.add("show");
+        loginButton.style.display = "none";
+      } else {
+        document.getElementById("heading").textContent =
+          "Welcome to your workspace";
+
+        document.getElementById("subtitle").textContent =
+          "Sign in securely with your Google account to continue.";
+
+        accountBox.classList.remove("show");
+        loginButton.style.display = "flex";
+        loginButton.disabled = false;
+        buttonText.textContent = "Continue with Google";
+      }
+    });
+  </script>
 </body>
 </html>
