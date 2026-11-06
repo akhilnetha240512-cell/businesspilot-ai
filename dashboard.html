@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#09091b">
+  <title>BusinessPilot AI | Welcome</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 22px;
+      display: grid;
+      place-items: center;
+      font-family: Arial, sans-serif;
+      color: white;
+      background:
+        radial-gradient(circle at 15% 15%, #51259b, transparent 40%),
+        radial-gradient(circle at 90% 90%, #075b83, transparent 40%),
+        #09091b;
+    }
+    .card {
+      width: 100%;
+      max-width: 480px;
+      padding: 35px 25px;
+      text-align: center;
+      border: 1px solid #ffffff25;
+      border-radius: 24px;
+      background: #17172eea;
+      box-shadow: 0 20px 70px #0008;
+    }
+    .logo { font-size: 24px; font-weight: 900; }
+    .logo span { color: #b58aff; }
+    .avatar {
+      width: 75px;
+      height: 75px;
+      margin: 30px auto 15px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: linear-gradient(135deg,#9b5cff,#20d9ff);
+    }
+    h1 { font-size: 27px; }
+    p { color: #b8b6d2; line-height: 1.7; overflow-wrap: anywhere; }
+    .details {
+      margin-top: 25px;
+      padding: 15px;
+      text-align: left;
+      background: #ffffff0b;
+      border: 1px solid #ffffff18;
+      border-radius: 14px;
+      font-size: 13px;
+    }
+    .details strong { color: #c6a4ff; }
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 25px;
+      border: 0;
+      border-radius: 12px;
+      color: white;
+      font-weight: bold;
+      background: linear-gradient(100deg,#8746ed,#168bdc);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">BUSINESSPILOT <span>AI</span></div>
+
+    <img class="avatar" id="avatar" alt="Profile picture">
+
+    <h1 id="welcome">Checking your account...</h1>
+    <p>Your Google authentication is being verified.</p>
+
+    <div class="details">
+      <p><strong>Name</strong><br><span id="name">Loading...</span></p>
+      <p><strong>Email</strong><br><span id="email">Loading...</span></p>
+      <p><strong>Firebase User UID</strong><br><span id="uid">Loading...</span></p>
+    </div>
+
+    <button id="logout" hidden>Sign out</button>
+  </main>
+
+  <script type="module">
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAD0vpk03II36ZNsn70q9E-RKhcxoePYKI",
+      authDomain: "businesspilot-ai-3932a.firebaseapp.com",
+      projectId: "businesspilot-ai-3932a",
+      storageBucket: "businesspilot-ai-3932a.firebasestorage.app",
+      messagingSenderId: "940895712421",
+      appId: "1:940895712421:web:1084c9d8d2c2c65e27894c",
+      measurementId: "G-FC8MMFC3GY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        window.location.replace("index.html");
+        return;
+      }
+
+      document.getElementById("welcome").textContent =
+        "Welcome, " + (user.displayName || "Business Owner") + "!";
+
+      document.getElementById("name").textContent =
+        user.displayName || "Not provided";
+
+      document.getElementById("email").textContent =
+        user.email || "Not provided";
+
+      document.getElementById("uid").textContent = user.uid;
+
+      if (user.photoURL) {
+        document.getElementById("avatar").src = user.photoURL;
+      }
+
+      document.getElementById("logout").hidden = false;
+    });
+
+    document.getElementById("logout").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.replace("index.html");
+    });
+  </script>
+</body>
+</html>
