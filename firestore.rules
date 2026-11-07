@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn(){ return request.auth != null; }
+    function isAdmin(){ return signedIn() && request.auth.token.super_admin == true; }
+    function member(bid){
+      return signedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active'
+        && get(/databases/$(database)/documents/businesses/$(bid)).data.status == 'active'
+        && exists(/databases/$(database)/documents/business_members/$(bid + '_' + request.auth.uid))
+        && get(/databases/$(database)/documents/business_members/$(bid + '_' + request.auth.uid)).data.status == 'active';
+    }
+    function owner(bid){
+      return member(bid) && get(/databases/$(database)/documents/business_members/$(bid + '_' + request.auth.uid)).data.role == 'owner';
+    }
+    function validBusinessRecord(){
+      return signedIn() && request.resource.data.businessId is string && member(request.resource.data.businessId);
+    }
+    function hasPremium(){
+      return signedIn()
+        && exists(/databases/$(database)/documents/subscriptions/$(request.auth.uid))
+        && get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data.status == 'active'
+        && get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data.expiresAt > request.time;
+    }
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.role == 'business_owner'
+        && request.resource.data.status == 'active';
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role','status','uid']));
+      allow delete: if isAdmin();
+    }
+    match /businesses/{bid} {
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow read: if isAdmin() || member(bid);
+      allow update: if isAdmin() || (owner(bid) && request.resource.data.ownerUid == resource.data.ownerUid
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status','ownerUid']));
+      allow delete: if isAdmin();
+    }
+    match /business_members/{memberId} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role == 'owner'
+        && request.resource.data.status == 'active'
+        && get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.ownerUid == request.auth.uid;
+      allow read: if isAdmin() || (signedIn() && (resource.data.uid == request.auth.uid || member(resource.data.businessId)));
+      allow update, delete: if isAdmin();
+    }
+    match /customers/{id} { allow read: if isAdmin() || member(resource.data.businessId); allow create, update, delete: if false; }
+    match /products/{id} { allow read: if isAdmin() || member(resource.data.businessId); allow create, update, delete: if false; }
+    match /orders/{id} { allow read: if isAdmin() || member(resource.data.businessId); allow create, update, delete: if false; }
+    match /inventory/{id} { allow read: if isAdmin() || member(resource.data.businessId); allow create, update, delete: if false; }
+    match /conversations/{id} { allow read: if isAdmin() || member(resource.data.businessId); allow create, update, delete: if false; }
+    match /messages/{id} { allow read: if isAdmin() || member(resource.data.businessId); allow create, update, delete: if false; }
+    match /automations/{id} { allow read: if isAdmin() || member(resource.data.businessId); allow create, update, delete: if false; }
+    match /automation_logs/{id} { allow read: if isAdmin() || member(resource.data.businessId); allow create: if isAdmin() || (validBusinessRecord() && hasPremium()); allow update, delete: if isAdmin(); }
+    match /support_tickets/{id} { allow read: if isAdmin() || (signedIn() && (resource.data.userUid == request.auth.uid || member(resource.data.businessId))); allow create: if signedIn() && request.resource.data.userUid == request.auth.uid && request.resource.data.businessId is string && member(request.resource.data.businessId); allow update, delete: if isAdmin(); }
+    match /notifications/{id} { allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid); allow create, update, delete: if isAdmin(); }
+    match /payment_requests/{id} {
+      allow read: if isAdmin() || (signedIn() && (resource.data.userUid == request.auth.uid || member(resource.data.businessId)));
+      allow create: if false; // Payment requests must be created by the trusted server endpoint.
+      allow update, delete: if isAdmin();
+    }
+    match /payment_history/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.userUid == request.auth.uid);
+      allow write: if isAdmin();
+    }
+    match /subscriptions/{id} {
+      allow read: if isAdmin() || (signedIn() && (id == request.auth.uid || (resource.data.businessId is string && member(resource.data.businessId))));
+      allow write: if isAdmin();
+    }
+    match /coupons/{id} { allow read, write: if isAdmin(); }
+    match /coupon_redemptions/{id} { allow read, write: if isAdmin(); }
+    match /application_settings/{id} { allow read, write: if isAdmin(); }
+    match /audit_logs/{id} {
+      allow read: if isAdmin() || (signedIn() && (resource.data.actorUid == request.auth.uid || (resource.data.businessId is string && member(resource.data.businessId))));
+      allow create: if isAdmin() || (signedIn() && request.resource.data.actorUid == request.auth.uid
+        && (request.resource.data.businessId == null || member(request.resource.data.businessId)));
+      allow update, delete: if isAdmin();
+    }
+    match /integration_configs/{bid} { allow read, write: if false; }
+    match /integration_registry/{id} { allow read, write: if false; }
+    match /system_events/{id} { allow read: if isAdmin() || (signedIn() && resource.data.businessId is string && member(resource.data.businessId)); allow write: if false; }
+    match /_health/{id} { allow read, write: if false; }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

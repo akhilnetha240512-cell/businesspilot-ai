@@ -1,0 +1,9 @@
+const crypto=require('crypto');
+const {getAdmin,verify,send}=require('./_firebase');
+const VERSION=process.env.META_GRAPH_VERSION||'v22.0';
+function key(){const raw=process.env.INTEGRATION_ENCRYPTION_KEY||'';if(!/^[a-f0-9]{64}$/i.test(raw))throw Object.assign(new Error('Set INTEGRATION_ENCRYPTION_KEY to 64 hexadecimal characters in Vercel.'),{status:503});return Buffer.from(raw,'hex')}
+function encrypt(value){const iv=crypto.randomBytes(12),c=crypto.createCipheriv('aes-256-gcm',key(),iv);const data=Buffer.concat([c.update(String(value),'utf8'),c.final()]);return {iv:iv.toString('hex'),tag:c.getAuthTag().toString('hex'),data:data.toString('hex')}}
+function decrypt(v){const d=crypto.createDecipheriv('aes-256-gcm',key(),Buffer.from(v.iv,'hex'));d.setAuthTag(Buffer.from(v.tag,'hex'));return Buffer.concat([d.update(Buffer.from(v.data,'hex')),d.final()]).toString('utf8')}
+async function owner(req){const u=await verify(req);const bid=String(req.body?.businessId||req.query?.businessId||'');if(!bid)throw Object.assign(new Error('businessId is required.'),{status:400});const {db}=getAdmin();const m=await db.doc(`business_members/${bid}_${u.uid}`).get();if(!m.exists||m.data().status!=='active'||!['owner','admin'].includes(m.data().role))throw Object.assign(new Error('Business owner/admin permission required.'),{status:403});return {u,bid,db}}
+async function fetchMeta(path,token,options={}){const r=await fetch(`https://graph.facebook.com/${VERSION}/${path}`,{...options,headers:{...(options.headers||{}),Authorization:`Bearer ${token}`,'Content-Type':'application/json'}});const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error?.message||`Meta API error ${r.status}`),{status:502});return j}
+module.exports={crypto,VERSION,key,encrypt,decrypt,owner,fetchMeta,send,getAdmin,verify};
