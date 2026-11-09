@@ -28,7 +28,26 @@ function showApp(){if(localStorage.getItem('bp-selected-plan'))activePage='Payme
 async function loadSubscription(){if(!currentUser||isAdmin){subscriptionInfo=null;premiumActive=false;return}try{const snap=await getDoc(doc(db,'subscriptions',currentUser.uid));subscriptionInfo=snap.exists()?snap.data():null;const exp=subscriptionInfo?.expiresAt?.toDate?subscriptionInfo.expiresAt.toDate():subscriptionInfo?.expiresAt?new Date(subscriptionInfo.expiresAt):null;premiumActive=!!(subscriptionInfo?.status==='active'&&exp&&exp.getTime()>Date.now())}catch(e){subscriptionInfo=null;premiumActive=false}}
 async function ensureAccount(user){const uref=doc(db,'users',user.uid);let us=await getDoc(uref);if(!us.exists()){await setDoc(uref,{uid:user.uid,email:user.email||'',displayName:user.displayName||'',photoURL:user.photoURL||'',role:'business_owner',status:'active',createdAt:serverTimestamp(),updatedAt:serverTimestamp()});us=await getDoc(uref)}profile=us.data();if(profile.preferredLanguage)setLanguage(profile.preferredLanguage==='Telugu'?'te':profile.preferredLanguage==='Hindi'?'hi':'en');if(profile.status==='suspended')throw new Error('This account is suspended. Contact support.');
  // Server bootstrap grants the Super Admin custom claim only to the configured UID and email.
- try{await api('/api/admin-bootstrap',{});await user.getIdToken(true)}catch(e){console.info('Admin bootstrap not active:',e.message)}
+ 
+const isConfiguredSuperAdmin =
+  user.uid === 'o7qVZ9QsbIS4zMYH7rCk53Ul24K2' &&
+  (user.email || '').toLowerCase() ===
+    'akhilnetha240512@gmail.com';
+
+try {
+  const bootstrapResult = await api('/api/admin-bootstrap', {});
+  await user.getIdToken(true);
+
+  console.info('Admin bootstrap result:', bootstrapResult);
+} catch (e) {
+  console.error('Admin bootstrap failed:', e);
+
+  if (isConfiguredSuperAdmin) {
+    throw new Error(
+      `Super Admin bootstrap failed: ${e.message}`
+    );
+  }
+}
  const token=await user.getIdTokenResult(true);isAdmin=token.claims.super_admin===true;
  if(isAdmin){businessId=null;return}
  const membershipQuery = query(
