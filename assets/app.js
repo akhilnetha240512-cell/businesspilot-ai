@@ -31,7 +31,28 @@ async function ensureAccount(user){const uref=doc(db,'users',user.uid);let us=aw
  try{await api('/api/admin-bootstrap',{});await user.getIdToken(true)}catch(e){console.info('Admin bootstrap not active:',e.message)}
  const token=await user.getIdTokenResult(true);isAdmin=token.claims.super_admin===true;
  if(isAdmin){businessId=null;return}
- const ms=await getDocs(query(collection(db,'business_members'),where('uid','==',user.uid),where('status','==','active')));if(!ms.empty){const m=ms.docs[0].data();businessId=m.businessId;await loadSubscription();return}
+ const membershipQuery = query(
+  collection(db, 'business_members'),
+  where('uid', '==', user.uid)
+);
+
+const membershipSnapshot = await getDocs(membershipQuery);
+
+const activeMemberships = membershipSnapshot.docs.filter(
+  item => item.data().status === 'active'
+);
+
+if (activeMemberships.length > 0) {
+  const membership = activeMemberships[0].data();
+  businessId = membership.businessId;
+  await loadSubscription();
+  return;
+}
+
+businessId = null;
+await loadSubscription();
+showOnboarding();
+return;if(!ms.empty){const m=ms.docs[0].data();businessId=m.businessId;await loadSubscription();return}
  businessId=null;await loadSubscription();showOnboarding();}
 function showOnboarding(){document.querySelector('.topbar').classList.add('hidden');document.querySelectorAll('body>main').forEach(x=>x.classList.add('hidden'));$('appShell').classList.add('hidden');showModal(`<div class="eyebrow">FIRST-TIME SETUP</div><h2>Create your business workspace</h2><p class="muted">Your records will be isolated from other businesses.</p><form id="onboardForm"><div class="form-grid"><div class="field"><label>Business name *</label><input name="businessName" required></div><div class="field"><label>Business category *</label><select name="category" required><option value="">Select category</option>${['Retail shop','Electrical and sanitary','Restaurant / food','Clothing store','Gym / fitness','Service provider','Online seller','Creator','Other'].map(x=>`<option>${x}</option>`).join('')}</select></div><div class="field"><label>Owner name</label><input name="ownerName" value="${esc(currentUser.displayName||'')}"></div><div class="field"><label>Business phone</label><input name="phone" inputmode="tel"></div><div class="field"><label>Business email</label><input name="email" type="email" value="${esc(currentUser.email||'')}"></div><div class="field"><label>Location</label><input name="location" placeholder="Town, district, state"></div><div class="field"><label>Preferred language</label><select name="language"><option>English</option><option>Telugu</option><option>Hindi</option></select></div><div class="field"><label>Business description</label><input name="description"></div></div><button class="btn btn-primary" type="submit">Create workspace</button></form>`);$('onboardForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),data=Object.fromEntries(f.entries());try{setLanguage(data.language==='Telugu'?'te':data.language==='Hindi'?'hi':'en');const b=await addDoc(collection(db,'businesses'),{...data,ownerUid:currentUser.uid,status:'active',createdAt:serverTimestamp()});businessId=b.id;await setDoc(doc(db,'business_members',`${b.id}_${currentUser.uid}`),{businessId:b.id,uid:currentUser.uid,role:'owner',status:'active',createdAt:serverTimestamp()});await updateDoc(urefSafe(),{businessId:b.id,preferredLanguage:data.language||'English',updatedAt:serverTimestamp()});await writeAudit('business_onboarded',{businessId:b.id});closeModal();showApp()}catch(err){toast(err.message)}}}
 function urefSafe(){return doc(db,'users',currentUser.uid)}
